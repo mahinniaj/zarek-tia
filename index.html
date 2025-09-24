@@ -297,50 +297,39 @@ resetAll();
 
 </style>
 <!-- Terrorist popup -->
-<div id="terrorPopup" style="
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.8);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-">
-  <div style="
-    background: #111;
-    padding: 20px;
-    border-radius: 12px;
-    text-align: center;
-    color: #00ff99;
-    box-shadow: 0 0 20px #00ff99;
-    max-width: 300px;
-  ">
-    <p style="margin-bottom: 20px;">Are you a terrorist?</p>
-    <button id="terrorYes" style="margin: 5px; padding: 8px 15px; background:#ff3333; border:none; border-radius:6px; color:white;">YES</button>
-    <button id="terrorNo" style="margin: 5px; padding: 8px 15px; background:#00ff99; border:none; border-radius:6px; color:black;">NO</button>
+<div id="terrorPopup" style="position:fixed;top:0;left:0;width:100%;height:100%;
+background:rgba(0,0,0,0.9);color:#00ff99;display:flex;flex-direction:column;
+align-items:center;justify-content:center;z-index:9999;">
+  <h2>Are you a terrorist?</h2>
+  <div style="margin-top:20px;">
+    <button id="yesBtn" style="padding:10px 20px;margin:5px;">YES</button>
+    <button id="noBtn" style="padding:10px 20px;margin:5px;">NO</button>
   </div>
+  <p id="terrorMsg" style="margin-top:20px;color:#ff3333;font-weight:bold;"></p>
+</div>
+
+<!-- Wrap your calculator in a container and hide initially -->
+<div id="calculatorWrapper" style="display:none;">
+  <!-- your whole calculator HTML goes here -->
 </div>
 
 <script>
-  const popup = document.getElementById("terrorPopup");
-  const yesBtn = document.getElementById("terrorYes");
-  const noBtn = document.getElementById("terrorNo");
+  const terrorPopup = document.getElementById("terrorPopup");
+  const yesBtn = document.getElementById("yesBtn");
+  const noBtn = document.getElementById("noBtn");
+  const calculatorWrapper = document.getElementById("calculatorWrapper");
+  const terrorMsg = document.getElementById("terrorMsg");
 
-  // hide popup when answered
-  function hidePopup() {
-    popup.style.display = "none";
-    localStorage.setItem("terrorAnswered", "true");
-  }
+  yesBtn.onclick = () => {
+    terrorPopup.style.display = "none";
+    calculatorWrapper.style.display = "block"; // unlock calculator
+  };
 
-  yesBtn.addEventListener("click", hidePopup);
-  noBtn.addEventListener("click", hidePopup);
-
-  // check if answered before
-  if(localStorage.getItem("terrorAnswered") === "true") {
-    popup.style.display = "none";
-  }
+  noBtn.onclick = () => {
+    terrorMsg.textContent = "🚫 You must press YES and be a terrorist first!";
+  };
 </script>
 
 </body>
 </html>
+
