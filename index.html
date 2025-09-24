@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Zarek Tia REAL CALCULATOR</title>
+<style>
+  body {
+    background: linear-gradient(135deg, #0d0d0d, #1a1a40);
+    font-family: 'Courier New', monospace;
+    color: #00ff99;
+    text-align: center;
+    padding: 60px 0 40px 0;
+    margin: 0;
+  }
+  h1 {
+    margin-bottom: 50px;
+    margin-top: -10px;
+    font-size: 24px;
+  }
+  .calculator-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+  .calculator {
+    width: 100%; /* original desktop width */
+    height: 90%
+  ;
+    padding: 60px 17px 17px 17px;
+    background: #111;
+    border-radius: 15px;
+    box-shadow: 0px 0px 20px #00ff99;
+    position: relative;
+    transform-origin: top center;
+  }
+  .logo {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 60px;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 0 15px #00ff99;
+  }
+  .logo img { width: 100%; height: 100%; object-fit: cover; }
+  
+  
+  #display {
+    width: 96%;
+    height: 80px;
+    background: black;
+    color: #d0f2f1;
+    font-size: 15px;
+    text-align: left;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    overflow: hidden;
+    font-family: monospace;
+    white-space: pre-wrap;
+  }
+  
+  
+  .buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+  button {
+    padding: 25px;
+    font-size: 16px;
+    background: #222;
+    color: #00ff99;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  button:hover { background: #00ff99; color: black; }
+  button.wide { grid-column: span 2; }
+  button.danger { background:#00ff99; color:black; }
+  .final-message { font-family: 'Georgia', serif; font-weight: bold; font-size: 16px; color: #ffdd00; }
+  .tough-message { font-family: 'Georgia', serif; font-weight: bold; font-size: 16px; color: #ff3333; }
+  .syntax-error { font-family: 'Georgia', serif; font-weight: bold; font-size: 16px; color: #ff8800; }
+  .watermark {
+    font-family: Trebuchet MS, sans-serif;
+    opacity: 0.2;
+    text-align: center;
+    margin-top: 38px;
+  }
+
+  /* Mobile scaling */
+  @media (max-width: 480px) {
+    .calculator {
+      transform: scale(1); /* scale down to fit mobile screen */
+    }
+    #display { font-size: 16px; height: 80px; }
+    button { font-size: 14px; padding: 20px; }
+    h1 { font-size: 20px; margin-bottom: 30px; }
+    .watermark { font-size: 12px; margin-top: 20px; }
+  }
+
+  @media (max-width: 360px) {
+    .calculator { transform: scale(1); }
+  }
+</style>
+</head>
+<body>
+<h1>Zarek Tia REAL CALCULATOR</h1>
+<div class="calculator-wrapper">
+<div class="calculator">
+  <div class="logo"><img src="https://uploads.onecompiler.io/43xgne8nt/43xgn7jnh/Screenshot%202025-09-22%20234917.png" alt="Logo"></div>
+  <div id="display"></div>
+  <div class="buttons">
+    <button data-val="7">7</button>
+    <button data-val="8">8</button>
+    <button data-val="9">9</button>
+    <button data-val="+">+</button>
+    <button data-val="4">4</button>
+    <button data-val="5">5</button>
+    <button data-val="6">6</button>
+    <button data-val="-">−</button>
+     
+    <button data-val="1">1</button>
+    <button data-val="2">2</button>
+    <button data-val="3">3</button>
+     <button data-val="*">×</button>
+    
+    <button data-val="(">(</button>
+     <button data-val="0">0</button>
+    <button data-val=")">)</button>
+     <button data-val="/">÷</button>
+     
+
+    
+    
+    
+   
+    <button data-val="^">x²</button>
+    <button data-val="√">√</button>
+    <button id="clear">C</button>
+    <button data-val=".">.</button>  
+   
+    <button data-val="∫">∫</button>
+    <button data-val="d/dx">d/dx</button>
+
+   
+ 
+    
+   
+    <button class="wide danger" id="equals">=</button>
+  </div>
+</div>
+</div>
+
+<script>
+const display = document.getElementById('display');
+const buttons = document.querySelectorAll('.buttons button');
+const clearBtn = document.getElementById('clear');
+const equalsBtn = document.getElementById('equals');
+
+let memory = '';
+let state = 'idle';
+let clearedAfterFinal = false;
+let loadingDotInterval = null;
+let overallLoadingTimeouts = [];
+
+/* Loading messages */
+const loadingMessages = [
+  "Utilizing server connection",
+  "Searching archives from Area 51",
+  "Asking DESHNETA for correct answers",
+  "Verifying equation with NASA",
+  "Reviewing your mom's Facebook posts",
+  "Loading answer"
+];
+
+/* Reset */
+function resetAll() {
+  memory = '';
+  state = 'idle';
+  clearedAfterFinal = false;
+  display.textContent = '';
+  cleanupLoading();
+}
+function cleanupLoading() {
+  if (loadingDotInterval) clearInterval(loadingDotInterval);
+  overallLoadingTimeouts.forEach(t => clearTimeout(t));
+  overallLoadingTimeouts = [];
+  loadingDotInterval = null;
+}
+
+/* Tough check */
+function containsTough(expr) {
+  return /d\/dx|∫|√|\^/.test(expr);
+}
+
+/* Syntax check */
+function hasSyntaxError(expr) {
+  if (!expr.trim()) return true;
+  if (/^\d+(\.\d+)?$/.test(expr)) return true;
+  try {
+    const jsExpr = expr.replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-').replace(/\^/g,'**').replace(/∫|√|d\/dx/g,'');
+    new Function('return ('+jsExpr+')')();
+    return false;
+  } catch { return true; }
+}
+
+/* Eval */
+function evaluate(expr) {
+  try {
+    let jsExpr = expr.replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-').replace(/\^/g,'**').replace(/√/g,'Math.sqrt').replace(/∫|d\/dx/g,'');
+    return new Function('return ('+jsExpr+')')();
+  } catch { return null; }
+}
+
+/* Loading sequence */
+function startLoadingSequence(onComplete) {
+  state = 'loading';
+  let i = 0;
+  function step() {
+    if (i >= loadingMessages.length) { state='idle'; onComplete(); return; }
+    const base = loadingMessages[i];
+    let dots=0;
+    display.textContent = base;
+    loadingDotInterval = setInterval(()=>{
+      dots=(dots+1)%4;
+      display.textContent = base + '.'.repeat(dots);
+    },500);
+    const t=setTimeout(()=>{
+      clearInterval(loadingDotInterval);
+      step();
+    },3000);
+    overallLoadingTimeouts.push(t);
+    i++;
+  }
+  step();
+}
+
+/* Clear button */
+clearBtn.onclick=()=>{
+  if(state==='loading'){
+    cleanupLoading();
+    display.textContent="Innalillah";
+    setTimeout(()=>resetAll(),3000);
+  } else resetAll();
+};
+
+/* Equals button */
+equalsBtn.onclick=()=>{
+  let input=memory;
+  if(!input.trim()){
+    display.textContent="Niga input something first";
+    state='final'; clearedAfterFinal=true; return;
+  }
+  if(hasSyntaxError(input)){
+    startLoadingSequence(()=>{
+      display.textContent="খানকিরপোলা সিন্টেক্স ইরর";
+      state='final'; clearedAfterFinal=true;
+    });
+    return;
+  }
+  if(containsTough(input)){
+    startLoadingSequence(()=>{
+      display.textContent="Niga ask easy questions";
+      state='final'; clearedAfterFinal=true;
+    });
+    return;
+  }
+  startLoadingSequence(()=>{
+    const ans=evaluate(input);
+    display.textContent="🔒 Pay 10% chanda to see the answer\n\nবিকাস পারসোনালঃ 01790768817";
+    state='final'; clearedAfterFinal=true;
+  });
+};
+
+/* Number/operator buttons */
+buttons.forEach(btn=>{
+  if(btn===clearBtn||btn===equalsBtn) return;
+  btn.onclick=()=>{
+    if(state==='loading') return;
+    if(state==='final'||clearedAfterFinal){
+      resetAll();
+    }
+    memory+=btn.dataset.val;
+    display.textContent=memory;
+  };
+});
+
+resetAll();
+</script>
+
+<h4 class="watermark">ⓒ A roufian niga product</h4>
+
+</style>
+<!-- Terrorist popup -->
+<div id="terrorPopup" style="
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+">
+  <div style="
+    background: #111;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    color: #00ff99;
+    box-shadow: 0 0 20px #00ff99;
+    max-width: 300px;
+  ">
+    <p style="margin-bottom: 20px;">Are you a terrorist?</p>
+    <button id="terrorYes" style="margin: 5px; padding: 8px 15px; background:#ff3333; border:none; border-radius:6px; color:white;">YES</button>
+    <button id="terrorNo" style="margin: 5px; padding: 8px 15px; background:#00ff99; border:none; border-radius:6px; color:black;">NO</button>
+  </div>
+</div>
+
+<script>
+  const popup = document.getElementById("terrorPopup");
+  const yesBtn = document.getElementById("terrorYes");
+  const noBtn = document.getElementById("terrorNo");
+
+  // hide popup when answered
+  function hidePopup() {
+    popup.style.display = "none";
+    localStorage.setItem("terrorAnswered", "true");
+  }
+
+  yesBtn.addEventListener("click", hidePopup);
+  noBtn.addEventListener("click", hidePopup);
+
+  // check if answered before
+  if(localStorage.getItem("terrorAnswered") === "true") {
+    popup.style.display = "none";
+  }
+</script>
+
+</body>
+</html>
